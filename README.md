@@ -219,5 +219,3 @@ The repo max shown per-signal makes the normalization transparent.
 - `github.com/charmbracelet/lipgloss` — terminal table styling
 - `gopkg.in/yaml.v3` — config file
 - Everything else is standard library
-
-https://claude.ai/chat/b77fc256-a027-4e29-823f-cd13edc25c57
