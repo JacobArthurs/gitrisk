@@ -10,23 +10,21 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gitrisk",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:          "gitrisk",
+	Short:        "PR risk analysis from local git history",
+	Long:         `gitrisk scores files changed in your branch by historical risk signals: churn, ownership fragmentation, bug-fix proximity, and change coupling.`,
+	SilenceUsage: true,
 }
 
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(analyzeCmd)
+	rootCmd.AddCommand(explainCmd)
+	rootCmd.AddCommand(hotspotsCmd)
+	rootCmd.AddCommand(couplingCmd)
 }

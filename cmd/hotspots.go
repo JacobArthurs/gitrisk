@@ -6,23 +6,43 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/jacobarthurs/gitrisk/internal/config"
+	"github.com/jacobarthurs/gitrisk/internal/git"
+	"github.com/jacobarthurs/gitrisk/internal/output"
+	"github.com/jacobarthurs/gitrisk/internal/score"
 	"github.com/spf13/cobra"
 )
 
 var hotspotsCmd = &cobra.Command{
 	Use:   "hotspots",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("hotspots called")
-	},
+	Short: "Show top 10 riskiest files repo-wide (not PR-scoped)",
+	RunE:  runHotspots,
 }
 
-func init() {
-	rootCmd.AddCommand(hotspotsCmd)
+func runHotspots(cmd *cobra.Command, args []string) error {
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("loading config: %w", err)
+	}
+
+	allFiles, err := git.AllTouchedFiles(cfg)
+	if err != nil {
+		return fmt.Errorf("getting files: %w", err)
+	}
+
+	signals, err := git.CollectSignals(allFiles, cfg)
+	if err != nil {
+		return fmt.Errorf("collecting signals: %w", err)
+	}
+
+	norms, err := git.ComputeNorms(cfg)
+	if err != nil {
+		return fmt.Errorf("computing norms: %w", err)
+	}
+
+	results := score.ScoreAll(signals, norms, cfg, false)
+	results = score.TopN(results, 10)
+
+	renderer := output.NewRenderer("table")
+	return renderer.Render(results, nil)
 }
